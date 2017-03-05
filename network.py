@@ -1,4 +1,4 @@
-import Numpy as np
+import numpy as np
 import random
 
 
@@ -37,21 +37,25 @@ class Network(object):
     # end of each epoch, which will slow things down but will ensure progress.
     def SGD(self, training_data, epochs, mini_batch_size, eta,
             test_data=None):
-        if test_data:
-            n_test = len(test_data)
+        training_data = list(training_data)
         n = len(training_data)
-        for j in xrange(epochs):
+
+        if test_data:
+            test_data = list(test_data)
+            n_test = len(test_data)
+        
+        for j in range(epochs):
             random.shuffle(training_data)
             mini_batches = [
                     training_data[k:k+mini_batch_size]
-                    for k in xrange(0, n, mini_batch_size)]
+                    for k in range(0, n, mini_batch_size)]
             for mini_batch in mini_batches:
                 self.update_mini_batch(mini_batch, eta)
             if test_data:
-                print "Epoch {0}: {1} / {2}".format(
-                        j, self.evaluate(test_data, n_test))
+                print("Epoch {}: {} / {}".format(
+                        j, self.evaluate(test_data), n_test))
             else:
-                print "Epoch {0} complete".format(j)
+                print("Epoch {} complete".format(j))
 
     # Update the network's weights and biases. Applies gradient
     # descent through backpropagation to a single mini_batch.
@@ -94,7 +98,7 @@ class Network(object):
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())
 
         # Reverse iteration over the layers.
-        for l in xrange(2, self.num_layers):
+        for l in range(2, self.num_layers):
             z = zs[-l]
             sp = sigmoid_prime(z)
             delta = np.dot(self.weights[-l+1].transpose(), delta) * sp
