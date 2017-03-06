@@ -61,8 +61,12 @@ class Network(object):
     # descent through backpropagation to a single mini_batch.
     # The mini_batch is a list of tuples. Eta is learning rate.
     def update_mini_batch(self, mini_batch, eta):
+
+        # Store zero'd biases and weight arrays
         nabla_b = [np.zeros(b.shape) for b in self.biases]
         nabla_w = [np.zeros(w.shape) for w in self.weights]
+
+        # Loop over training data pairs in the mini batch
         for x, y in mini_batch:
             delta_nabla_b, delta_nabla_w = self.backprop(x, y)
             nabla_b = [nb+dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
@@ -73,9 +77,11 @@ class Network(object):
                        for b, nb in zip(self.biases, nabla_b)]
 
     # Returns a tuple of (nabla_b, nabla_w) representing the
-    # gradient for the cost function C_x. Nabla_b and Nabla_w
-    # are layer-by-layer lists of numpy arrays - akin to biases
-    # and weights.
+    # gradient for the cost function C_x.
+    #
+    # 1. Computes the activated values, layer by layer with the given x,y
+    # 2. Computes the cost delta, storing in biases and weights -1
+    # 3. Iterates backwards through the laters, filling in the cost delta
     def backprop(self, x, y):
         nabla_b = [np.zeros(b.shape) for b in self.biases]
         nabla_w = [np.zeros(w.shape) for w in self.weights]
