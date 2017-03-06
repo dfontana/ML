@@ -135,5 +135,23 @@ Totally not needed to follow, but a great review of simple chain rule and unders
 
         delta^L,j = (dC, da^L,j) * sigmaPrime(z^L,j)
 
-- BP2:
+- BP2, 3, and 4 are all similar - carefully applying the Chain Rule.
 
+### The Backpropagration Algorithm
+1. **Input x**: Set the corresponding activation a^1 for the input layer.
+2. **Feedforward**: For each l = 2,3,...,L compute z^l = w^l * a^l-1 + b^l, followed by a^l = sigma(z^l)
+3. **Output error, Delta^L**: Compute the vector delta^L, BP1
+4. **Backpropgate the error**: For each l = L-1,L-2,...,2 compute BP2.
+5. **Output**: The gradient of the cost function, given by BP3 and BP4.
+
+Do you get why it's called *back*propagation now? We start at with the error at the end, and work backwards to understand how the output was affected by the weights and baises going in. And we're not done yet, we understand how backpropagation now works but remember: *backpropagation computes the gradient for one training example, x* which means we need to combine it with Stochastic gradient descent to compute the overall gradient over several mini-batches, m.
+
+For a singular mini-batch, the algorithm looks like this:
+1. **Input a set of training examples.**
+2. **For each training example x**: run the backpropagation alforithm
+3. **Gradient descent**: For each l = L, L-1,...,2 update the weights and biases according to:
+    
+    w^l -> w^l - (n/m) * SumX(delta^X,l * (a^x,l-1)^T)
+    b^l -> b^l - (n/m) * SumX(delta^x,l)
+
+Remember n is the learning rate and m is the size of the mini batch! Then to finish off Stochastic Gradient Descent, you'd have an outer loop to iterate over all the mini batches and applying this algorithm. Then you'd have another outer loop that would step through multiple epochs of training.

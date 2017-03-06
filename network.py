@@ -5,15 +5,12 @@ import random
 # The network object is used to represent the neural net
 class Network(object):
 
-    # sizes: Number of neurons in respective layers
-    #   Ex: Network([2,3,1)] would make a network of 3 layers w/ 2,3,1 neurons
-    #       respectively
+    # sizes: Array of numbers. Each index is a layer of corresponding size.
+    #   Ex: Network([2,3,1)] makes 3 layers w/ 2,3,1 neurons respectively
     # Biases/Weights:
-    #   - Initialized randomly with numpy, w/ mean 0 and stdev 1.
+    #   - Initialized randomly, their size derived from sizes.
     #   - Arrays of matricies, starting at index 0.
-    #   - Each matrix stores the connection in form: wjk where k is the kth
-    #       neuron in the second layer and j is the jth neuron in the 1st
-    #       layer.
+    #   - Weights stored in form wjk, biases as bj
     # Note: we don't have biases for input neurons.
     def __init__(self, sizes):
         self.num_layers = len(sizes)
@@ -46,9 +43,13 @@ class Network(object):
 
         for j in range(epochs):
             random.shuffle(training_data)
+
+            # Breaks data into mini batches
             mini_batches = [
                     training_data[k:k+mini_batch_size]
                     for k in range(0, n, mini_batch_size)]
+
+            # Run backwards propagation / update the weights and biases.
             for mini_batch in mini_batches:
                 self.update_mini_batch(mini_batch, eta)
             if test_data:
@@ -71,6 +72,9 @@ class Network(object):
             delta_nabla_b, delta_nabla_w = self.backprop(x, y)
             nabla_b = [nb+dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
             nabla_w = [nw+dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
+
+        # nb is computed in backprop as the delta
+        # nw is computed in backprop as delta * transposed activation
         self.weights = [w-(eta/len(mini_batch))*nw
                         for w, nw in zip(self.weights, nabla_w)]
         self.biases = [b-(eta/len(mini_batch))*nb
@@ -78,16 +82,11 @@ class Network(object):
 
     # Returns a tuple of (nabla_b, nabla_w) representing the
     # gradient for the cost function C_x.
-    #
-    # 1. Computes the activated values, layer by layer with the given x,y
-    # 2. Computes the cost delta, storing in biases and weights -1
-    # 3. Iterates backwards through the laters, filling in the cost delta
     def backprop(self, x, y):
         nabla_b = [np.zeros(b.shape) for b in self.biases]
         nabla_w = [np.zeros(w.shape) for w in self.weights]
 
         # Compute the activations for each layer and store
-        # (feeding forward)
         activation = x
         activations = [x]  # Stores activations layer by layer
         zs = []            # Stores all z vectors, layer by layer
@@ -97,19 +96,20 @@ class Network(object):
             activation = sigmoid(z)
             activations.append(activation)
 
-        # Now do a backwards pass
-        delta = self.cost_derivative(activations[-1], y) * \
-            sigmoid_prime(zs[-1])
-        nabla_b[-1] = delta
-        nabla_w[-1] = np.dot(delta, activations[-2].transpose())
+        # Computes the error for the output layer, stores nb / nw.
+        delta = (activations[-1] - y) * sigmoid_prime(zs[-1])  # BP1
+        nabla_b[-1] = delta  # BP3
+        nabla_w[-1] = np.dot(delta, activations[-2].transpose())  # BP4
 
-        # Reverse iteration over the layers.
+        # Backpropagates from L-1 to 2, computing the error, nb, and nw
         for l in range(2, self.num_layers):
             z = zs[-l]
             sp = sigmoid_prime(z)
-            delta = np.dot(self.weights[-l+1].transpose(), delta) * sp
-            nabla_b[-l] = delta
-            nabla_w[-l] = np.dot(delta, activations[-l-1].transpose())
+            delta = np.dot(self.weights[-l+1].transpose(), delta) * sp  # BP2
+            nabla_b[-l] = delta  # BP3
+            nabla_w[-l] = np.dot(delta, activations[-l-1].transpose())  # BP4
+
+        # Backpropagation done
         return (nabla_b, nabla_w)
 
     # Return the number of test inputs for which the neural network
@@ -120,11 +120,6 @@ class Network(object):
         test_results = [(np.argmax(self.feedforward(x)), y)
                         for (x, y) in test_data]
         return sum(int(x == y) for (x, y) in test_results)
-
-    # Return the vector of partial derivatives dC_x/da for the
-    # output activations.
-    def cost_derivative(self, output_activations, y):
-        return (output_activations - y)
 
 
 # Helpers: Applies elementwise if Z is a vector
