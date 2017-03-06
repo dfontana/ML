@@ -41,6 +41,7 @@ By convention we should draw inputs similar to perceptrons and call them the inp
 	1. Unlike perceptrons, sigmoids can take inputs between 1 and 0.
 	2. Unlike perceptrons, sigmoids output the value: sigma(wDotx + b). Recognize some folks make refer to sigma as logistic, because that's a new class of neurons floating around out there. Also note that sigma is short for **sigmoid function**.  *ps this is called the activation function*
 	3. The **sigmoid function** is defined as: sigma(z) = 1 / ( 1 + e ^ -z )
+
 ###### Let's get technical.
 We know the output of a sigmoid and we know the sigmoid function, so truth be told a sigmoid with inputs x1,x2... and weights w1,w2... and bias b is:
 	- 1 / ( 1 + exp(- Sum(wixi) - b))
@@ -76,7 +77,7 @@ To the problem at hand, we want to detect the digits of a handwritten number. Fi
  The inputs are grayscaled, with 0.0 meaning white and 1.0 meaning black, with shades of gray between. The hidden layer will start with (n=15) neurons. This n can be tweaked and we will be doing so. The output is 10 neurons: the neuron with the highest value tells us what number it is.
 
 ###### How to Learn
-First we need a set of data to learn from, to quiz our network on. We'll be using the MNIST data set (A Modified United States National INstitute of Standards and Technology data set) to train our data. This dataset happens to have two parts: 60,000 training images and 10,000 test images. The second part is from a whole different set of people the network didn't see in training, helping us ensure the network isn't biased.
+First we need a set of data to learn from, to quiz our network on. We'll be using the MNIST data set (A Modified United States National Institute of Standards and Technology data set) to train our data. This dataset happens to have two parts: 60,000 training images and 10,000 test images. The second part is from a whole different set of people the network didn't see in training, helping us ensure the network isn't biased.
 
 Training inputs will be referred to as *x*. Each x will be a 784 dimensional vector, each entry a pixel intensity. The output will be denoted: *y=y(x)*, where y is a 10 dimensional vetor. The goal is to get a set of weights and biases that will approximate y(x) for all training x. To do this we need a qualifying function:
 	- C(w,b) = (1 / 2n ) * Sum( ||y(x) - a||^2 )

@@ -43,7 +43,7 @@ class Network(object):
         if test_data:
             test_data = list(test_data)
             n_test = len(test_data)
-        
+
         for j in range(epochs):
             random.shuffle(training_data)
             mini_batches = [
