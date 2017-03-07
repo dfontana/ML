@@ -1,23 +1,26 @@
 import numpy as np
 import random
+import cost as cst
 
 
 # The network object is used to represent the neural net
 class Network(object):
 
-    # sizes: Array of numbers. Each index is a layer of corresponding size.
+    # sizes:    Array of numbers. Each index is a layer of corresponding size.
+    # cost:     Cost function to use. Defaults to Cross-Entropy.
     #   Ex: Network([2,3,1)] makes 3 layers w/ 2,3,1 neurons respectively
-    # Biases/Weights:
-    #   - Initialized randomly, their size derived from sizes.
-    #   - Arrays of matricies, starting at index 0.
-    #   - Weights stored in form wjk, biases as bj
-    # Note: we don't have biases for input neurons.
-    def __init__(self, sizes):
+    def __init__(self, sizes, cost=cst.CrossEntropyCost):
         self.num_layers = len(sizes)
         self.sizes = sizes
-        self.biases = [np.random.randn(y, 1) for y in sizes[1:]]
+        self.initializeNetwork()
+        self.cost = cost
+
+    # Prepares the network's biases and weights, stored in form wjk and bj
+    # Note there are no biases for input neurons
+    def initializeNetwork(self):
+        self.biases = [np.random.randn(y, 1) for y in self.sizes[1:]]
         self.weights = [np.random.randn(y, x)
-                        for x, y in zip(sizes[:-1], sizes[1:])]
+                        for x, y in zip(self.sizes[:-1], self.sizes[1:])]
 
     # Applies the activation equation: sigma(wa + b) to each layer.
     def feedforward(self, a):
@@ -26,28 +29,29 @@ class Network(object):
         return a
 
     # Stochastic gradient descent learning algorithm.
-    # Training_data: A list of tuples in (x,y) form (aka: input,output)
-    # ETA: learning rate
-    # Batch_size and epochs are size of a mini batch and # of epochs to run.
+    # tr_data:  A list of tuples in (x,y) form (aka: input,output)
+    # ETA:      learning rate
+    # bat_size: Size of mini-batch to use
+    # epochs:   Number of epochs of training to perform
     #
     # If test_data is provided the network is evaluated against it at the
     # end of each epoch, which will slow things down but will ensure progress.
-    def SGD(self, training_data, epochs, mini_batch_size, eta,
+    def SGD(self, tr_data, epochs, bat_size, eta,
             test_data=None):
-        training_data = list(training_data)
-        n = len(training_data)
+        tr_data = list(tr_data)
+        n = len(tr_data)
 
         if test_data:
             test_data = list(test_data)
             n_test = len(test_data)
 
         for j in range(epochs):
-            random.shuffle(training_data)
+            random.shuffle(tr_data)
 
             # Breaks data into mini batches
             mini_batches = [
-                    training_data[k:k+mini_batch_size]
-                    for k in range(0, n, mini_batch_size)]
+                    tr_data[k:k+bat_size]
+                    for k in range(0, n, bat_size)]
 
             # Run backwards propagation / update the weights and biases.
             for mini_batch in mini_batches:
@@ -97,7 +101,7 @@ class Network(object):
             activations.append(activation)
 
         # Computes the error for the output layer, stores nb / nw.
-        delta = (activations[-1] - y) * sigmoid_prime(zs[-1])  # BP1
+        delta = (self.cost).delta(zs[-1], activations[-1], y)  # BP1
         nabla_b[-1] = delta  # BP3
         nabla_w[-1] = np.dot(delta, activations[-2].transpose())  # BP4
 
