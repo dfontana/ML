@@ -4,8 +4,8 @@
 - Each input has an associated real value: the weight. This determines the significance of the input or output
 - The overall output is then determined by the summation of the weighted sum being less than or greater than some threshold value.
 - ie: 
-	0 if Sum(wixi) <= threshold
-	1 if Sum(wixi) > threshold
+	0 if Σi(wixi) <= threshold
+	1 if Σi(wixi) > threshold
 
 ###### Perceptrons (Layers)
 - What if we want to make decisions a little more fine grained? For example, let's say a cheese festival is occuring and you have three factors to consider:
@@ -19,11 +19,11 @@
 	- Continue until all layers are done and the final output computed.
 
 ###### Simplifying the notation:
-1. Saying Sum(wixi) > threshold is unhelpful. Lets instead note this as w (dot) x, where w and x are vectors of weights and inputs respectively being dot product'd.
+1. Saying Σi(wixi) > threshold is unhelpful. Lets instead note this as w ∙ x, where w and x are vectors of weights and inputs respectively being dot product'd.
 2. Then move the threshold to the other side of the equation (making it negative) and call it the bias.
 3. The result is:
-	0 if wDOTx + b <= 0
-	1 if wDOTx + b > 0
+	0 if w∙x + b <= 0
+	1 if w∙x + b > 0
 The bias can be viewed as "how difficult it is to get the preceptron to output a 1."
 AKA 'fire'. The larger the bias, the easier it is to fire.
 
@@ -36,19 +36,19 @@ By convention we should draw inputs similar to perceptrons and call them the inp
 ### Sigmoid Neurons
 - You'll recognize that perceptrons being NAND gates are lacklustre. The power arrives from the fact we can automatically tune weights and biases with learning algorithms. Enter the Sigmoid neuron.
 - When learning, we desire to make small changes to weights that makes small changes to outputs. This allows learning. Too much, and we won't be able to be precise enough! This can be read as:
-	w + deltaW (or b + deltaB) -> output + deltaOutput
+	w + ΔW (or b + ΔB) -> output + ΔOutput
 - The issue with Perceptrons is that we can't do small adjustments: the output will either be 1 or 0 and no inbetween. To solve this **sigmoid neurons** allow output that can be change slightly based on slight changes in weights/biases.
 	1. Unlike perceptrons, sigmoids can take inputs between 1 and 0.
 	2. Unlike perceptrons, sigmoids output the value: sigma(wDotx + b). Recognize some folks make refer to sigma as logistic, because that's a new class of neurons floating around out there. Also note that sigma is short for **sigmoid function**.  *ps this is called the activation function*
-	3. The **sigmoid function** is defined as: sigma(z) = 1 / ( 1 + e ^ -z )
+	3. The **sigmoid function** is defined as: σ(z) = 1 / ( 1 + e ^ -z )
 
 ###### Let's get technical.
 We know the output of a sigmoid and we know the sigmoid function, so truth be told a sigmoid with inputs x1,x2... and weights w1,w2... and bias b is:
-	- 1 / ( 1 + exp(- Sum(wixi) - b))
-	- The gist of this is that if z is wDotx + b, then when z is large and positive the output of the neuron will be 1-ish. If it's very negative, it's 0. Anywhere between is then anywhere between.
+	- 1 / ( 1 + exp(- Σi(wixi) - b))
+	- The gist of this is that if z is w∙x + b, then when z is large and positive the output of the neuron will be 1-ish. If it's very negative, it's 0. Anywhere between is then anywhere between.
 	- And the shape of the sigmoid function? It's a smoothed curve from 0 to 1. Keyword *smoothed*. The smoothness means that small changes to bias and weights will make small changes to output. Brilliant.
-	- To approximate this small change in output, we can look at it as the sum of the partial derivatives: Sum((dOutput / dW) * deltaW + (dOutput / dB) * deltaB)
-	- The above formula is interpretted as a *linear function* of deltaW and deltaB
+	- To approximate this small change in output, we can look at it as the sum of the partial derivatives: Σ((dOutput / dW) * ΔW + (dOutput / dB) * ΔB)
+	- The above formula is interpretted as a *linear function* of ΔW and ΔB
 
 ###### Handling Sigmoid Output
 - Sometimes we can use the raw output as needed. In other cases we can consider a convention, like output > 0.5 (for example). Just keep this in mind.
@@ -80,7 +80,7 @@ To the problem at hand, we want to detect the digits of a handwritten number. Fi
 First we need a set of data to learn from, to quiz our network on. We'll be using the MNIST data set (A Modified United States National Institute of Standards and Technology data set) to train our data. This dataset happens to have two parts: 60,000 training images and 10,000 test images. The second part is from a whole different set of people the network didn't see in training, helping us ensure the network isn't biased.
 
 Training inputs will be referred to as *x*. Each x will be a 784 dimensional vector, each entry a pixel intensity. The output will be denoted: *y=y(x)*, where y is a 10 dimensional vetor. The goal is to get a set of weights and biases that will approximate y(x) for all training x. To do this we need a qualifying function:
-	- C(w,b) = (1 / 2n ) * Sum( ||y(x) - a||^2 )
+	- C(w,b) = (1 / 2n ) * Σx( ||y(x) - a||^2 )
 	- w is the collection of all weights in the network
 	- b is all the biases
 	- n is the total number of training inputs
@@ -100,46 +100,46 @@ We got this analogy:
 	1. Imagine our function as a valley. If we roll a ball down the hill, it eventually hits the bottom of the valley. 
 	2. Now what if we picked a random start point to release the ball from, and then simulated the motion of the ball as it rolls down to the bottom. 
 	3. If we capture derivatives and second derivatives of C, we can then inspect the shape of the valley and learn when the "ball" is at the bottom!
-To accomplish this programatically for C, we want to find a deltaV1 and deltaV2 that will make deltaC negative (as in decreasing) in the following formula:
+To accomplish this programatically for C, we want to find a ΔV1 and ΔV2 that will make deltaC negative (as in decreasing) in the following formula:
 
-	deltaC = (dC / dV1)deltaV1 + (dC / dV2)deltaV2
+	ΔC = (dC / dV1)ΔV1 + (dC / dV2)ΔV2
 
-DeltaV can be defined as the vector of changes in v, aka Transpose (deltaV1, deltaV2). The gradient of C can be defined as a vector of partial derivatives, aka Transpose (dC/dV1, dC/dV2). With this knowledge in hand, we can rewrite the above deltaC equation as:
+DeltaV can be defined as the vector of changes in v, aka Transpose (ΔV1, ΔV2). The gradient of C (∇C) can be defined as a vector of partial derivatives, aka Transpose (dC/dV1, dC/dV2). With this knowledge in hand, we can rewrite the above ΔC equation as:
 	
-	deltaC = gradientC * deltaV
+	ΔC = ∇C * ΔV
 
 And this tells us how to find our deltaV values:
 
-	deltaV = gradientC * -n
+	ΔV = ∇C * -η
 
-Where n is a small, positive parameter known as the *learning rate*. When we plug this back into our new deltaC equation we learn:
+Where η is a small, positive parameter known as the *learning rate*. When we plug this back into our new ΔC equation we learn:
 
-	deltaC = gradientC * -n*gradientC = -n||gradientC||^2
+	ΔC = ∇C * -η∇C = -n||∇C||^2
 
-Now we can guarentee that deltaC will always be negative due to the -n, since squaring gradientC forces that number to be positive. Now we can use this fact to determine how the ball should move down the hill, following the equation we defined for deltaV:
+Now we can guarentee that ΔC will always be negative due to the -η, since squaring ∇C forces that number to be positive. Now we can use this fact to determine how the ball should move down the hill, following the equation we defined for ΔV:
 
-	v -> v` = v - n*gradientC
+	v -> v` = v - η∇C
 
-For each step from v to vprime we compute a new number, eventually hitting the minimum of C. In a nutshell, *gradient decent works by computing gradientC and then moving in the opposite direction to fall down the slope towards the minimum*. All we have to do is pick a learning rate that isn't too small to slow down computations, but isn't too large to make deltaC > 0.
+For each step from v to vprime we compute a new number, eventually hitting the minimum of C. In a nutshell, *gradient decent works by computing ∇C and then moving in the opposite direction to fall down the slope towards the minimum*. All we have to do is pick a learning rate that isn't too small to slow down computations, but isn't too large to make ΔC > 0.
 
 Note that for more than two variables, all we do is change our vectors to include more variables. No biggie. It's important to note gradient decent may not always work and there are fixes to make it more reliable in finding the global minimum, which will come later...
 
 ###### Applying Gradient Descent to Learning
-Above we defined the equation C(w,b) as our cost function, which we want to minize. If we take the learnings of gradient descent, and apply the gradient descent update rule in terms of our cost function (that deltaV equation):
+Above we defined the equation C(w,b) as our cost function, which we want to minize. If we take the learnings of gradient descent, and apply the gradient descent update rule in terms of our cost function (that ΔV equation):
 
-	wk -> wk` = wk - n(dC/dWk)
-	bl -> bl` = bl - n(dC/dBl)
+	wk -> wk` = wk - η(dC/dWk)
+	bl -> bl` = bl - η(dC/dBl)
 
 Repeatedly applying this rule makes for minimizing our cost function. Now there's one small flaw with this. If we want to minimize our cost function, we would need to compute these values an ungodly number of times since we need to eventually sum and average these values for all training values x. To speed this up, something called *stochastic gradient descent* can be used. The idea is to take a small sample from the training inputs and using that as an estimation of the gradient. 
 
 How?
 	1. Randomly pick a small number, m, of training values: x1,x2,...,xm. This is our *mini-batch*
-	2. If we have a large enough sample size, we can expect the average of the mini-batch to be equal to the average of the real deal: gradientC = (1/m)Sum(gradientCxi). 
+	2. If we have a large enough sample size, we can expect the average of the mini-batch to be equal to the average of the real deal: ∇C = (1/m)Σi(∇Cxi). 
 
 Applying this to neural nets, we get:
 
-	wk -> wk` = wk - n/m Sum(dCi/dWki)
-	bl -> bl` = bl - n/m Sum(dCi/dBli)
+	wk -> wk` = wk - η/m Σi(dCi/dWki)
+	bl -> bl` = bl - η/m Σi(dCi/dBli)
 
 Which essentially is the sums over all training examples Xi in the current mini-batch. Pick another mini-batch and repeat. Continue until all training data is used. This is called the *epoch* of tranining, in which a new epoch can then begin.
 
