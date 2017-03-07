@@ -1,4 +1,4 @@
-import Numpy as np
+import numpy as np
 
 
 class CrossEntropyCost(object):
