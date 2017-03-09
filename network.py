@@ -16,11 +16,25 @@ class Network(object):
         self.cost = cost
 
     # Prepares the network's biases and weights, stored in form wjk and bj
-    # Note there are no biases for input neurons
+    # Note there are no biases for input neurons. Remember, matricies use the
+    # notation of number of rows x number of columns.
     def initializeNetwork(self):
-        self.biases = [np.random.randn(y, 1) for y in self.sizes[1:]]
-        self.weights = [np.random.randn(y, x)
-                        for x, y in zip(self.sizes[:-1], self.sizes[1:])]
+        # Each iteration produces a new index representing layer l. RandN
+        # produces a matrix of j neurons tall(rows) by 1(column) to fill each
+        # index. These sub matricies are filled with standard normal values.
+        self.biases = [np.random.randn(j, 1) for j in self.sizes[1:]]
+
+        # Zip produces an array representing what layers need connections,
+        # looking like: ((2,3),(3,1)). It then iterates, reversing the pair
+        # so we get Wjk format: ((3,2)(1,3)). Each iteration calls RandN to
+        # make a matrix of j neurons(rows) having k connections each (columns)
+        #   - Weights[l] holds the lth layer (not input)
+        #   - Weights[l][j] holds the weights connecting to the jth neuron
+        #       of layer l.
+        #   - Weights[l][j][k] holds the single weight between the jth neuron
+        #       of layer l and the kth neuron of layer l-1.
+        self.weights = [np.random.randn(j, k)/np.sqrt(k)
+                        for k, j in zip(self.sizes[:-1], self.sizes[1:])]
 
     # Applies the activation equation: sigma(wa + b) to each layer.
     def feedforward(self, a):
