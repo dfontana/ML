@@ -2,10 +2,6 @@
 import numpy as np
 import random
 
-# Serialization
-import sys
-import json
-
 # Helpers
 import cost as cst
 
@@ -177,20 +173,6 @@ class Network(object):
         return (nabla_b, nabla_w)
 
 # ================================
-# Serialization p(1/2) - TODO move out of class
-# ================================
-    # Exports the network to file.
-    # filename    - path to export the network
-    def save(self, filename):
-        data = {"sizes": self.sizes,
-                "weights": [w.tolist() for w in self.weights],
-                "biases": [b.tolist() for b in self.biases],
-                "cost": str(self.cost.__name__)}
-        f = open(filename, "w")
-        json.dump(data, f)
-        f.close()
-
-# ================================
 # Helpers for monitoring - TODO move out of class
 # ================================
     # Convert - Set to true if the data given is the training data. If true,
@@ -227,22 +209,6 @@ def vectorized_result(j):
     e = np.zeros((10, 1))
     e[j] = 1.0
     return e
-
-
-# ================================
-# Serialization p(2/2) - TODO move out of class w/ save
-# ================================
-# Reads a network from file.
-# Return  - Instance of the network for usage.
-def load(filename):
-    f = open(filename, "r")
-    data = json.load(f)
-    f.close()
-    cost = getattr(sys.modules[__name__], data["cost"])
-    net = Network(data["sizes"], cost=cost)
-    net.weights = [np.array(w) for w in data["weights"]]
-    net.biases = [np.array(b) for b in data["biases"]]
-    return net
 
 
 # ================================
