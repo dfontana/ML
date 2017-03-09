@@ -1,5 +1,12 @@
+# Computation
 import numpy as np
 import random
+
+# Serialization
+import sys
+import json
+
+# Helpers
 import cost as cst
 
 
@@ -44,21 +51,36 @@ class Network(object):
 
     # Stochastic gradient descent learning algorithm.
     # tr_data:  A list of tuples in (x,y) form (aka: input,output)
-    # ETA:      learning rate
-    # bat_size: Size of mini-batch to use
     # epochs:   Number of epochs of training to perform
+    # bat_size: Size of mini-batch to use
+    # ETA:      learning rate
+    # lmda: Regularization value
+    # eval_data: Data used to evaluation / validate
+    # monitor_eval_cost: Would you like to monitor evaluation cost?
+    # monitor_eval_acc: Would you like to monitor evaluation accuracy?
+    # monitor_tr_cost: Would you like to monitor training cost?
+    # monitor_tr_acc: Would you like to monitor training accuracy?
     #
     # If test_data is provided the network is evaluated against it at the
     # end of each epoch, which will slow things down but will ensure progress.
-    def SGD(self, tr_data, epochs, bat_size, eta,
-            test_data=None):
+    def SGD(self, tr_data, epochs, bat_size, eta, lmbda=0.0, eval_data=None,
+            monitor_eval_cost=False,
+            monitor_eval_acc=False,
+            monitor_tr_cost=False,
+            monitor_tr_acc=False):
+
+        # Prep evaluation and test data
+        if(eval_data):
+            eval_data = list(eval_data)
+            n_data = len(eval_data)
         tr_data = list(tr_data)
         n = len(tr_data)
 
-        if test_data:
-            test_data = list(test_data)
-            n_test = len(test_data)
+        # Prep the monitoring dat structures.
+        eval_cost, eval_acc = [], []
+        tr_cost, tr_acc = [], []
 
+        # Training begins.
         for j in range(epochs):
             random.shuffle(tr_data)
 
@@ -69,17 +91,38 @@ class Network(object):
 
             # Run backwards propagation / update the weights and biases.
             for mini_batch in mini_batches:
-                self.update_mini_batch(mini_batch, eta)
-            if test_data:
-                print("Epoch {}: {} / {}".format(
-                        j, self.evaluate(test_data), n_test))
-            else:
-                print("Epoch {} complete".format(j))
+                self.update_mini_batch(mini_batch, eta, lmbda, n)
+
+            print("Epoch {} complete.".format(j))
+
+            # Monitoring - TODO extract method
+            if monitor_tr_cost:
+                cost = self.total_cost(tr_data, lmbda)
+                tr_cost.append(cost)
+                print("Cost on training data: {}".format(cost))
+            if monitor_tr_acc:
+                accuracy = self.accuracy(tr_data, convert=True)
+                tr_acc.append(accuracy)
+                print("Accuracy on training data: {} / {}".format(
+                    accuracy, n))
+            if monitor_eval_cost:
+                cost = self.total_cost(eval_data, lmbda, convert=True)
+                eval_cost.append(cost)
+                print("Cost on evaluation data: {}".format(cost))
+            if monitor_eval_acc:
+                accuracy = self.accuracy(eval_data)
+                eval_acc.append(accuracy)
+                print("Accuracy on evaluation data: {} / {}".format(
+                    self.accuracy(eval_data), n_data))
+        return eval_cost, eval_acc, tr_cost, tr_acc
 
     # Update the network's weights and biases. Applies gradient
     # descent through backpropagation to a single mini_batch.
-    # The mini_batch is a list of tuples. Eta is learning rate.
-    def update_mini_batch(self, mini_batch, eta):
+    # mini_batch  - bach being processed
+    # eta         - learning rate
+    # lmbda       - Regularization parameter
+    # n           - number of training examples
+    def update_mini_batch(self, mini_batch, eta, lmbda, n):
 
         # Store zero'd biases and weight arrays
         nabla_b = [np.zeros(b.shape) for b in self.biases]
@@ -93,13 +136,16 @@ class Network(object):
 
         # nb is computed in backprop as the delta
         # nw is computed in backprop as delta * transposed activation
-        self.weights = [w-(eta/len(mini_batch))*nw
+        # Regularizaed weight value.
+        self.weights = [(1-eta*(lmbda/n))*w-(eta/len(mini_batch))*nw
                         for w, nw in zip(self.weights, nabla_w)]
         self.biases = [b-(eta/len(mini_batch))*nb
                        for b, nb in zip(self.biases, nabla_b)]
 
     # Returns a tuple of (nabla_b, nabla_w) representing the
     # gradient for the cost function C_x.
+    # x   - training input
+    # y   - expected training output
     def backprop(self, x, y):
         nabla_b = [np.zeros(b.shape) for b in self.biases]
         nabla_w = [np.zeros(w.shape) for w in self.weights]
@@ -130,17 +176,79 @@ class Network(object):
         # Backpropagation done
         return (nabla_b, nabla_w)
 
-    # Return the number of test inputs for which the neural network
-    # outputs the correct result. It's assumed the output of the net
-    # is the index of the neuron in the final layer with the hightest
-    # activation.
-    def evaluate(self, test_data):
-        test_results = [(np.argmax(self.feedforward(x)), y)
-                        for (x, y) in test_data]
-        return sum(int(x == y) for (x, y) in test_results)
+# ================================
+# Serialization p(1/2) - TODO move out of class
+# ================================
+    # Exports the network to file.
+    # filename    - path to export the network
+    def save(self, filename):
+        data = {"sizes": self.sizes,
+                "weights": [w.tolist() for w in self.weights],
+                "biases": [b.tolist() for b in self.biases],
+                "cost": str(self.cost.__name__)}
+        f = open(filename, "w")
+        json.dump(data, f)
+        f.close()
+
+# ================================
+# Helpers for monitoring - TODO move out of class
+# ================================
+    # Convert - Set to true if the data given is the training data. If true,
+    #     the data set is converted to the expected format.
+    # Data    - Input data
+    # Returns - Number of correct inputs in data for which the network computed
+    #     output is assumed to be the highest acivated output neuron.
+    def accuracy(self, data, convert=False):
+        if convert:
+            results = [(np.argmax(self.feedforward(x)), np.argmax(y))
+                       for (x, y) in data]
+        else:
+            results = [(np.argmax(self.feedforward(x)), y) for (x, y) in data]
+        return sum(int(x == y) for (x, y) in results)
+
+    # Data    - data set to evaluate.
+    # lmbda   - Regularization parameter
+    # Convert - Flags if the given data set needs conversion. ie, training data
+    # Return  - Total cost of the data set given
+    def total_cost(self, data, lmbda, convert=False):
+        cost = 0.0
+        for x, y in data:
+            a = self.feedforward(x)
+            if convert:
+                y = vectorized_result(y)
+            cost += self.cost.fn(a, y)/len(data)
+        cost += 0.5*(lmbda/len(data))*sum(
+            np.linalg.norm(w)**2 for w in self.weights)
+        return cost
 
 
-# Helpers: Applies elementwise if Z is a vector
+# Returns j as a 10D vector with the jth index saturated.
+def vectorized_result(j):
+    e = np.zeros((10, 1))
+    e[j] = 1.0
+    return e
+
+
+# ================================
+# Serialization p(2/2) - TODO move out of class w/ save
+# ================================
+# Reads a network from file.
+# Return  - Instance of the network for usage.
+def load(filename):
+    f = open(filename, "r")
+    data = json.load(f)
+    f.close()
+    cost = getattr(sys.modules[__name__], data["cost"])
+    net = Network(data["sizes"], cost=cost)
+    net.weights = [np.array(w) for w in data["weights"]]
+    net.biases = [np.array(b) for b in data["biases"]]
+    return net
+
+
+# ================================
+# Helpers for Class. TODO move into the class, use self.sigmoid()
+# ================================
+# Applies elementwise if Z is a vector
 def sigmoid(z):
     return 1.0/(1.0+np.exp(-z))
 
