@@ -10,3 +10,4 @@ net.SGD(training_data, 30, 10, 0.5, 5.0, eval_data=test_data,
         monitor_eval_acc=True,
         monitor_tr_cost=True,
         monitor_tr_acc=True)
+        
