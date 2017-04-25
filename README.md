@@ -1,7 +1,6 @@
 # NeuralLearning
 A collection of neural network related learnings gathered from http://neuralnetworksanddeeplearning.com, Stanford CS229, and various other resources.
-- Notes can be found inside 'thebook' for neuralnetworksanddeeplearning.com
-- Notes can be found inside 'StandfordCS229' for the recorded Standford lecture (on youtube)
+- Notes are organized by "book" for the website, and "cs229" for the Standford lectures.
 
 ### Network.py
 Originally provided by thebook website, but modified and adapted to include topics covered in later chapters (found in network2.py). Focuses on training a network to classify the MNIST data set. 
