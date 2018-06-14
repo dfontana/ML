@@ -1,4 +1,4 @@
-import Genome from "../interfaces/iGenome"
+import Genome from "./iGenome"
 
 /**
  * Randomly chooses a genome from the pool based on its proportional fitness.
@@ -50,4 +50,26 @@ export async function findParents(pool: Genome[], cp: number): Promise<Genome[][
     parents.push(Promise.all([roulette(pool), roulette(pool)]))
   }
   return Promise.all(parents);
+}
+
+/**
+* Performs single-point crossover on each of the parental pairs provided, returning a flat list of genomes to include in the next generation.
+* @param parents List of objects containing two parents for crossing over.
+* @return Array of genomes bred from parents.
+*/
+export async function crossover(parents: Genome[][]): Promise<Genome[]> {
+ return parents.reduce((acc, pair) => {
+   acc.push(...pair[0].cross(pair[1]))
+   return acc
+ }, [])
+}
+
+/**
+ * Performs mutation over the given pool with the given probability.
+ * In this version, mutation is attempted on each gene of each genome within the pool.
+ * of a random genome to mutate.
+ * @return Genome pool after mutation
+ */
+export async function mutate(pool: Genome[]): Promise<Genome[]> {
+  return pool.map(g => g.mutate());
 }

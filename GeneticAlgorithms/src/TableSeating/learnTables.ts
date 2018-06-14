@@ -1,6 +1,6 @@
 import GATable from "./GATable"
 import Person from "./Person"
-import GeneticAlgorithm from "../interfaces/iGeneticAlgorithm"
+import GeneticAlgorithm from "../common/iGeneticAlgorithm"
 
 
 // ============ Evolution loop.

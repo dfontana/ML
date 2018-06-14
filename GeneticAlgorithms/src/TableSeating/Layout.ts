@@ -1,4 +1,4 @@
-import Genome from "../interfaces/iGenome"
+import Genome from "../common/iGenome"
 import Table from "./Table"
 import Person from "./Person"
 
@@ -33,6 +33,26 @@ export default class Layout implements Genome{
       tScore += t.percentage() * 100;
       return acc + tScore;
     }, 0);
+  }
+
+  //TODO
+  cross(other: Layout): Genome[] {
+    let [p1, p2] = pair;
+    let point = Math.random()*p1.length
+    let c1 = p1.substring(0, point) + p2.substring(point);
+    let c2 = p2.substring(0, point) + p1.substring(point);
+    return [c1, c2]
+  }
+
+  //TODO
+  mutate(): Genome {
+    // g == this genome, should return a mutated form of this genome
+    for(let i = 0; i < g.length; i++) {
+      if(g[i] != goal[i] && Math.random() <= prob) {
+        g = g.substr(0, i) + randChar() + g.substr(i+1);
+      }
+    }
+    return g
   }
 
   toString() {

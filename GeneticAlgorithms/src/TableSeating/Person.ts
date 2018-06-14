@@ -1,4 +1,4 @@
-import Gene from "../interfaces/iGene"
+import Gene from "../common/iGene"
 
 let PERSON_ID: number = 0;
 

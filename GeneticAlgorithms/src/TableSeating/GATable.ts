@@ -1,47 +1,8 @@
 import Layout from "./Layout"
 import Person from "./Person"
-import GeneticAlgorithm from "../interfaces/iGeneticAlgorithm"
-import Genome from "../interfaces/iGenome"
-import { fittest, findParents, findSurvivors } from "./GAUtilities"
-
-
-/**
- * TODO
- * Performs single-point crossover on each of the parental pairs provided, returning a flat list of genomes to include in the next generation.
- * @param parents List of objects containing two parents for crossing over.
- * @return Array of genomes bred from parents.
- */
-async function crossover(parents: Genome[][]) {
-  function cross(pair: Genome[]) {
-    let [p1, p2] = pair;
-    let point = Math.random()*p1.length
-    let c1 = p1.substring(0, point) + p2.substring(point);
-    let c2 = p2.substring(0, point) + p1.substring(point);
-    return [c1, c2]
-  }
-  return parents.reduce((acc, pair) => {
-    acc.push(...cross(pair))
-    return acc
-  }, [])
-}
-
-/**
- * TODO
- * Performs mutation over the given pool with the given probability.
- * In this version, mutation is attempted on each gene of each genome within the pool.
- * of a random genome to mutate.
- * @return Genome pool after mutation
- */
-async function mutate(pool: Genome[]): Promise<Genome[]> {
-  return pool.map(g => {
-  for(let i = 0; i < g.length; i++) {
-    if(g[i] != goal[i] && Math.random() <= prob) {
-      g = g.substr(0, i) + randChar() + g.substr(i+1);
-    }
-  }
-  return g
-  })
-}
+import GeneticAlgorithm from "../common/iGeneticAlgorithm"
+import Genome from "../common/iGenome"
+import { fittest, findParents, findSurvivors, crossover, mutate } from "../common/GAUtilities"
 
 export default class GATable implements GeneticAlgorithm{
   private cp: number;
