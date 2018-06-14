@@ -1,6 +1,6 @@
-import GATable from "./implementations/GATable"
-import Person from "./implementations/Person"
-import GeneticAlgorithm from "./interfaces/iGeneticAlgorithm"
+import GATable from "./GATable"
+import Person from "./Person"
+import GeneticAlgorithm from "../interfaces/iGeneticAlgorithm"
 
 
 // ============ Evolution loop.
@@ -16,7 +16,7 @@ import GeneticAlgorithm from "./interfaces/iGeneticAlgorithm"
 })();
 
 // ============= People construction
-function getPeople() {
+function getPeople(): Person[] {
   let attendees: {[index:string]:Person} = {
     'Kurt' : new Person('Kurt'),
     'Jane' : new Person('Jane'),
@@ -53,5 +53,5 @@ function getPeople() {
   avoid('Patterson', bad)
   avoid('Nas', bad)
   
-  return Object.values(attendees);
+  return Object.keys(attendees).map(key => attendees[key]);
 }
