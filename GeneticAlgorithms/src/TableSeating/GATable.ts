@@ -9,14 +9,20 @@ export default class GATable implements GeneticAlgorithm{
   private mp: number;
   private genes: Person[];
   private poolSize: number;
+  private tableCt: number;
+  private tableCap: number;
+  private generations: number;
   generation: number;
   fittest: Genome;
 
-  constructor(poolSize: number, crossP: number, mutateP: number) {
+  constructor(generations: number, poolSize: number, crossP: number, mutateP: number, tableCt: number, tableCap: number) {
     this.cp = crossP;
     this.mp = mutateP;
     this.generation = 0;
     this.poolSize = poolSize;
+    this.tableCt = tableCt;
+    this.tableCap = tableCap;
+    this.generations = generations;
   }
 
   /**
@@ -25,11 +31,11 @@ export default class GATable implements GeneticAlgorithm{
    * @param tableCt Number of tables
    * @param tableCap Capacity of each table
    */
-  async initPool(attendees: Person[], tableCt: number, tableCap: number): Promise<Genome[]> { 
+  initPool(attendees: Person[]): Genome[] { 
 
     // Set the genes (people), assuming it's appropriately sized.
-    if(tableCt * tableCap < attendees.length) {
-      throw new Error(`Not enough seats (${tableCt*tableCap}) available for the number of attendees (${attendees.length}).`)
+    if(this.tableCt * this.tableCap < attendees.length) {
+      throw new Error(`Not enough seats (${this.tableCt*this.tableCap}) available for the number of attendees (${attendees.length}).`)
     }
     this.genes = attendees;
 
@@ -39,8 +45,8 @@ export default class GATable implements GeneticAlgorithm{
     for(let i = 0; i < pool.length; i++) {
       // Initialize empty tables (pool)
       let layout = new Layout();
-      for(let i = 0; i<tableCt; i++) {
-        layout.addTable(tableCap);
+      for(let i = 0; i<this.tableCt; i++) {
+        layout.addTable(this.tableCap);
       }
 
       // Seat attendees at a random table and seat number.
@@ -48,9 +54,9 @@ export default class GATable implements GeneticAlgorithm{
         let person: Person = this.genes[i];
         let tbl = 0, seat = 0, seated = false;
         do{
-          tbl = Math.floor(Math.random()*tableCt);
-          seat = Math.floor(Math.random()*tableCap);
-          seated = await layout.seat(person, tbl, seat)
+          tbl = Math.floor(Math.random()*this.tableCt);
+          seat = Math.floor(Math.random()*this.tableCap);
+          seated = layout.seat(person, tbl, seat)
         }while(!seated)
       }
 
@@ -61,15 +67,20 @@ export default class GATable implements GeneticAlgorithm{
     return pool;
   }
 
-  async evaluate(pool: Genome[]): Promise<void> {
+  evaluate(pool: Genome[]): void {
     pool.map(l => l.evaluate())
-    this.fittest = await fittest(pool);
+    this.fittest = fittest(pool);
   }
 
-  async breed(pool: Genome[]): Promise<Genome[]> {
-    let survivors = await findSurvivors(pool, this.cp)
-    let parents = await findParents(pool, this.cp)
-    let children = await crossover(parents)
-    return mutate([...survivors, ...children]);
+  breed(pool: Genome[]): Genome[] {
+    this.generation++;
+    let survivors = findSurvivors(pool, (1-this.cp)*this.poolSize)
+    let parents = findParents(pool, this.cp*this.poolSize)
+    let children = crossover(parents)
+    return mutate([...survivors, ...children], this.mp, ()=>{});
+  }
+
+  isFinished(): boolean {
+    return this.generation < this.generations;
   }
 }

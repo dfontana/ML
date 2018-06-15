@@ -4,8 +4,7 @@ import Genome from "./iGenome"
  * Randomly chooses a genome from the pool based on its proportional fitness.
  * @return genome, randomly selected
  */
-export async function roulette(pool: Genome[]): Promise<Genome> {
- let totalFitness = pool.reduce((acc, x) => acc + x.fitness, 0);
+export function roulette(pool: Genome[], totalFitness: number): Genome { 
  let sum = 0;
  let threshold = totalFitness * Math.random();
  for(let i = 0; i < pool.length; i++) {
@@ -17,7 +16,7 @@ export async function roulette(pool: Genome[]): Promise<Genome> {
 }
 
 // Finds the fittest item from the given pool.
-export async function fittest(pool: Genome[]): Promise<Genome> {
+export function fittest(pool: Genome[]): Genome {
   let bestGenome: Genome = null;
   let bestScore: number = Number.MIN_SAFE_INTEGER;
   for(let i = 0; i < pool.length; i++) {
@@ -34,22 +33,21 @@ export async function fittest(pool: Genome[]): Promise<Genome> {
  * Selects (1-P_CROSSOVER)*POOL_SIZE genomes to be carried on into the next generation without any crossover.
  * @return Array of genomes to be carried into next generation.
  */
-export async function findSurvivors(pool: Genome[], cp: number): Promise<Genome[]> {
-  let n = (1 - cp) * pool.length;
-  return Promise.all(Array.from({length: n}, idx => roulette(pool)))
+export function findSurvivors(pool: Genome[], n: number): Genome[] {
+  let totalFitness = pool.reduce((acc, x) => acc + x.fitness, 0);
+  return Array.from({length: n}, idx => roulette(pool, totalFitness))
 }
 
 /**
  * Selects n parents from the given pool for crossover. 
  * @return Array of objects, holding two genomes each.
  */
-export async function findParents(pool: Genome[], cp: number): Promise<Genome[][]> {
-  let n = cp * pool.length;
-  let parents: Promise<Genome[]>[] = [];
-  for(let i = 0; i < n; i++) {
-    parents.push(Promise.all([roulette(pool), roulette(pool)]))
-  }
-  return Promise.all(parents);
+export function findParents(pool: Genome[], n: number): Genome[][] {
+  let totalFitness = pool.reduce((acc, x) => acc + x.fitness, 0);
+  return Array.from({length: n}, x => [ 
+    roulette(pool, totalFitness, ), 
+    roulette(pool, totalFitness)
+  ])
 }
 
 /**
@@ -57,7 +55,7 @@ export async function findParents(pool: Genome[], cp: number): Promise<Genome[][
 * @param parents List of objects containing two parents for crossing over.
 * @return Array of genomes bred from parents.
 */
-export async function crossover(parents: Genome[][]): Promise<Genome[]> {
+export function crossover(parents: Genome[][]): Genome[] {
  return parents.reduce((acc, pair) => {
    acc.push(...pair[0].cross(pair[1]))
    return acc
@@ -70,6 +68,6 @@ export async function crossover(parents: Genome[][]): Promise<Genome[]> {
  * of a random genome to mutate.
  * @return Genome pool after mutation
  */
-export async function mutate(pool: Genome[]): Promise<Genome[]> {
-  return pool.map(g => g.mutate());
+export function mutate(pool: Genome[], mp: number, randGene: Function): Genome[] {
+  return pool.map(g => g.mutate(mp, randGene));
 }

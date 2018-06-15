@@ -1,7 +1,7 @@
 export default interface Genome {
   fitness: number;
-  evaluate(): void;
+  evaluate(goal?: Genome): void;
   cross(other: Genome): Genome[];
-  mutate(): Genome;
+  mutate(mutateProbability: number, randGene: Function): Genome;
   toString(): string;
 }

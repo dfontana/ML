@@ -4,12 +4,13 @@ import GeneticAlgorithm from "../common/iGeneticAlgorithm"
 
 
 // ============ Evolution loop.
-(async function Evolution(){
-  let GA: GeneticAlgorithm = new GATable(200, 0.95, 0.01);
-  let pool = await GA.initPool(getPeople(), 5, 4);
-  while(GA.generation < 2000) {
-    pool = await GA.breed(pool);
-    await GA.evaluate(pool);
+(function Evolution(){
+  let GA: GeneticAlgorithm = new GATable(2000, 200, 0.95, 0.01, 5, 4);
+  let pool = GA.initPool(getPeople());
+  GA.evaluate(pool)
+  while(!GA.isFinished()) {
+    pool = GA.breed(pool);
+    GA.evaluate(pool);
     console.log(`Gen: ${GA.generation} Fit: ${GA.fittest.fitness}`)
   }
   console.log(`\n Best Layout: ${GA.fittest.fitness} \n ============ \n ${GA.fittest.toString()}`)

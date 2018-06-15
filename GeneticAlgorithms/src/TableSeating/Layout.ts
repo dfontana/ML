@@ -18,7 +18,7 @@ export default class Layout implements Genome{
   }
 
   // Seats the given person in seat at table, returning if it was successful.
-  async seat(person: Person, tableID: number, seatID: number): Promise<boolean> {
+  seat(person: Person, tableID: number, seatID: number): boolean {
     if(this.tables.length-1 < tableID) {
       return false;
     }
@@ -45,7 +45,7 @@ export default class Layout implements Genome{
   }
 
   //TODO
-  mutate(): Genome {
+  mutate(prob: number, randGene: Function): Genome {
     // g == this genome, should return a mutated form of this genome
     for(let i = 0; i < g.length; i++) {
       if(g[i] != goal[i] && Math.random() <= prob) {

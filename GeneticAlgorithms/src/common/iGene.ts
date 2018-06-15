@@ -1,1 +1,3 @@
-export default interface Gene {}
+export default interface Gene {
+  toString(): string;
+}
